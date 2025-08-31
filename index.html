@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wysokość lampy wiszącej</title>
+  <style>
+    :root{
+      --bg:#f7f8fb; --panel:#fff; --text:#0b1020; --muted:#5b6576;
+      --accent:#16a34a; --accent-2:#2563eb; --line:rgba(0,0,0,.12);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:var(--bg); color:var(--text);
+      font-family:ui-sans-serif,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      display:flex; align-items:center; justify-content:center; padding:24px}
+    .card{width:min(920px,100%); background:var(--panel); border:1px solid rgba(0,0,0,.08);
+      border-radius:18px; box-shadow:0 10px 26px rgba(0,0,0,.08); padding:22px}
+    h1{margin:0 0 20px; text-align:center; font-size:clamp(20px,4vw,28px)}
+
+    /* segmented control */
+    .seg{display:flex; width:fit-content; background:#f1f5f9; border:1px solid rgba(0,0,0,.08);
+      border-radius:999px; padding:4px; gap:6px; margin:0 auto 12px}
+    .seg button{border:0; background:transparent; padding:8px 14px; border-radius:999px; cursor:pointer; color:var(--muted); font-weight:600}
+    .seg button.active{background:#fff; color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+    .control{display:grid; grid-template-columns:auto auto; gap:10px; align-items:center; margin:0 auto 22px; width:fit-content}
+    .control label{color:var(--muted)}
+    .control input[type=number]{width:120px; padding:8px 10px; border-radius:12px; border:1px solid var(--line); font-size:16px}
+
+    .summary{text-align:center; color:var(--muted); margin:8px 0 18px; font-size:15px}
+    .summary strong{color:var(--text)}
+
+    .canvas-wrap{background:linear-gradient(#fff,#fbfcff); border:1px solid rgba(0,0,0,.06); border-radius:14px; padding:10px}
+    svg{width:min(880px,100%); height:420px; display:block}
+
+    .legend{display:flex; gap:16px; align-items:center; justify-content:center; color:var(--muted); font-size:13px; margin:8px 0 0; flex-wrap:wrap}
+    .chip{display:inline-flex; align-items:center; gap:6px}
+    .chip i{width:16px; height:6px; display:inline-block; border-radius:999px}
+
+    .note{text-align:center; color:var(--muted); font-size:13px; margin:10px 0 0}
+    .footer{text-align:center; color:var(--muted); margin-top:14px; font-size:14px}
+    .footer a{color:inherit; text-decoration:underline}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1 id="title">Wysokość lampy wiszącej</h1>
+
+    <div class="seg" role="tablist" aria-label="Typ zastosowania">
+      <button id="mode-table" role="tab" aria-selected="true" class="active">Nad stołem</button>
+      <button id="mode-island" role="tab" aria-selected="false">Nad wyspą</button>
+    </div>
+
+    <div class="control">
+      <label for="ceil" id="label-ceil">Wysokość sufitu (cm)</label>
+      <input id="ceil" type="number" min="230" max="360" step="1" value="260" inputmode="numeric" />
+    </div>
+
+    <p class="summary" id="summary">Dół lampy: <strong>75–90 cm</strong> nad blatem (sweet spot ~ <strong>80 cm</strong>) • Drop od sufitu: <strong>180 cm</strong></p>
+
+    <div class="canvas-wrap">
+      <svg id="scene" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+        <title id="desc">Schemat wysokości zawieszenia lampy wiszącej</title>
+      </svg>
+      <div class="legend">
+        <span class="chip"><i style="background: color-mix(in oklab, var(--accent) 70%, white);"></i><span id="legend-band">Strefa 75–90 cm nad blatem</span></span>
+        <span class="chip"><i style="background: var(--accent-2);"></i><span id="legend-sweet">Sweet spot</span></span>
+      </div>
+    </div>
+
+    <p class="note" id="note"></p>
+    <p class="footer" id="footer">stworzone z ❤️ przez <a id="footer-link" href="https://educk.pl" target="_blank">educk.pl</a></p>
+  </main>
+
+  <script>
+    (function(){
+      // i18n by domain
+      const isPL = window.location.hostname.endsWith('.pl');
+      const t = isPL ? {
+        pageTitle:'Wysokość lampy wiszącej',
+        segTable:'Nad stołem', segIsland:'Nad wyspą',
+        inputLabel:'Wysokość sufitu (cm)',
+        summary:(clearMin, clearMax, sweet, drop)=>`Dół lampy: <strong>${clearMin}–${clearMax} cm</strong> nad blatem (sweet spot ~ <strong>${sweet} cm</strong>) • Drop od sufitu: <strong>${drop} cm</strong>`,
+        a11y:'Schemat wysokości zawieszenia lampy wiszącej',
+        legendBand:(min,max)=>`Strefa ${min}–${max} cm nad blatem`, legendSweet:'Sweet spot',
+        floor:'podłoga', ceiling:'sufit', table:'stół', island:'wyspa', drop:'drop', clearance:'nad blatem',
+        note:'Zakładamy stół 75 cm i wyspę 90 cm. Dół lampy 75–90 cm nad blatem (środek ~80–85 cm).',
+        footerPrefix:'stworzone z ❤️ przez', footerSite:'educk.pl', footerHref:'https://educk.pl?utm_source=lamp-height'
+      } : {
+        pageTitle:'Pendant Height Helper',
+        segTable:'Over table', segIsland:'Over island',
+        inputLabel:'Ceiling height (cm)',
+        summary:(clearMin, clearMax, sweet, drop)=>`Bottom of pendant: <strong>${clearMin}–${clearMax} cm</strong> above surface (sweet spot ~ <strong>${sweet} cm</strong>) • Drop from ceiling: <strong>${drop} cm</strong>`,
+        a11y:'Diagram of pendant height over table/island',
+        legendBand:(min,max)=>`Band ${min}–${max} cm above surface`, legendSweet:'Sweet spot',
+        floor:'floor', ceiling:'ceiling', table:'table', island:'island', drop:'drop', clearance:'above',
+        note:'Assumptions: table 75 cm, island 90 cm. Bottom of pendant 75–90 cm above surface (mid ~80–85 cm).',
+        footerPrefix:'created with ❤️ by', footerSite:'educk.org', footerHref:'https://educk.org?utm_source=lamp-height'
+      };
+      document.title = t.pageTitle; document.getElementById('title').textContent = t.pageTitle;
+      document.getElementById('mode-table').textContent = t.segTable;
+      document.getElementById('mode-island').textContent = t.segIsland;
+      document.getElementById('label-ceil').textContent = t.inputLabel;
+      document.getElementById('footer').firstChild.nodeValue = t.footerPrefix + ' ';
+      const link = document.getElementById('footer-link'); link.textContent = t.footerSite; link.href = t.footerHref;
+      const svgTitle = document.getElementById('desc'); if (svgTitle) svgTitle.textContent = t.a11y;
+
+      // state
+      let mode = 'table'; // 'table' | 'island'
+
+      // constants (cm)
+      const TABLE_H = 75;
+      const ISLAND_H = 90;
+      const CLEAR_MIN = 75;
+      const CLEAR_MAX = 90;
+      const SWEET = 82; // sweet spot in cm
+
+      // helpers
+      const clamp = (v,min,max)=> Math.max(min, Math.min(max,v));
+      const round = v => Math.round(v);
+
+      // draw
+      const svg = document.getElementById('scene');
+      const W = 900, H = 420; const ceilYpx = 40, floorYpx = H - 20;
+
+      function recalc(){
+        const ceilInput = parseFloat(document.getElementById('ceil').value) || 260;
+        const ceilCm = clamp(ceilInput, 220, 360);
+        const topH = mode==='table' ? TABLE_H : ISLAND_H;
+        const bottomMin = topH + CLEAR_MIN; // cm from floor
+        const bottomMax = topH + CLEAR_MAX;
+        const bottomSweet = topH + SWEET;
+        const drop = ceilCm - bottomSweet; // cm from ceiling
+
+        // summary
+        document.getElementById('summary').innerHTML = t.summary(CLEAR_MIN, CLEAR_MAX, SWEET, round(drop));
+
+        // legend text
+        document.getElementById('legend-band').textContent = t.legendBand(CLEAR_MIN, CLEAR_MAX);
+        document.getElementById('legend-sweet').textContent = t.legendSweet;
+
+        render(ceilCm, topH, bottomMin, bottomMax, bottomSweet, drop);
+      }
+
+      function render(ceilCm, topH, bottomMin, bottomMax, bottomSweet, drop){
+        svg.innerHTML = '';
+        // scale (vertical): px per cm
+        const scale = (floorYpx - ceilYpx) / ceilCm;
+        const xCenter = 520; // scene center for pendant
+
+        // ceiling + floor lines
+        add('line',{x1:40,y1:ceilYpx,x2:W-40,y2:ceilYpx,stroke:'var(--line)','stroke-width':1});
+        add('line',{x1:40,y1:floorYpx,x2:W-40,y2:floorYpx,stroke:'var(--line)','stroke-width':1});
+        add('text',{x:46,y:ceilYpx-8,'font-size':12,fill:'var(--muted)'},t.ceiling);
+        add('text',{x:46,y:floorYpx+14,'font-size':12,fill:'var(--muted)'},t.floor);
+
+        // surface (table/island) — enhanced drawing
+        const surfaceY = floorYpx - topH * scale;
+        const surfW = 360; // px visual width
+        if (mode==='table') {
+          const topT = 10; // tabletop thickness
+          // tabletop
+          add('rect',{x:xCenter - surfW/2, y:surfaceY - topT, width:surfW, height:topT, rx:3, fill:'#e9eef6', stroke:'rgba(0,0,0,.12)'});
+          // legs
+          const legW = 14, legInset = 56; // px
+          const legH = floorYpx - surfaceY;
+          add('rect',{x:xCenter - surfW/2 + legInset, y:surfaceY, width:legW, height:legH, rx:3, fill:'#cbd5e1', stroke:'rgba(0,0,0,.10)'});
+          add('rect',{x:xCenter + surfW/2 - legInset - legW, y:surfaceY, width:legW, height:legH, rx:3, fill:'#cbd5e1', stroke:'rgba(0,0,0,.10)'});
+          add('text',{x:xCenter - surfW/2, y:surfaceY - 12, 'font-size':12, fill:'var(--muted)'}, t.table);
+        } else {
+          // island with base cabinet + toe kick + overhang counter
+          const counterT = 12, overhang = 18;
+          add('rect',{x:xCenter - (surfW/2 + overhang), y:surfaceY - counterT, width:surfW + overhang*2, height:counterT, rx:4, fill:'#e9eef6', stroke:'rgba(0,0,0,.12)'});
+          const baseW = surfW, baseH = floorYpx - surfaceY;
+          add('rect',{x:xCenter - baseW/2, y:surfaceY, width:baseW, height:baseH, rx:4, fill:'#eef2f7', stroke:'rgba(0,0,0,.10)'});
+          // panel seam
+          add('line',{x1:xCenter, y1:surfaceY+6, x2:xCenter, y2:floorYpx-10, stroke:'rgba(0,0,0,.06)'});
+          // toe kick
+          const toeH = 10, toeInset = 16;
+          add('rect',{x:xCenter - baseW/2 + toeInset, y:floorYpx - toeH, width:baseW - toeInset*2, height:toeH, rx:2, fill:'#d9e2ee', stroke:'rgba(0,0,0,.08)'});
+          add('text',{x:xCenter - baseW/2, y:surfaceY - 12, 'font-size':12, fill:'var(--muted)'}, t.island);
+        }
+
+        // recommended band (green) above surface (green) above surface
+        const bandTop = floorYpx - bottomMax * scale;
+        const bandH = (bottomMax - bottomMin) * scale;
+        add('rect',{x:xCenter - 120, y:bandTop, width:240, height:Math.max(4, bandH), rx:8, fill:'color-mix(in oklab, var(--accent) 18%, white)'});
+
+        // pendant cord + body (sweet spot)
+        const bottomSweetY = floorYpx - bottomSweet * scale;
+        const cordX = xCenter;
+        add('line',{x1:cordX, y1:ceilYpx, x2:cordX, y2:bottomSweetY - 20, stroke:'rgba(0,0,0,.35)','stroke-width':2});
+        const bodyW = 36, bodyH = 20; // px
+        add('rect',{x:cordX - bodyW/2, y:bottomSweetY - bodyH, width:bodyW, height:bodyH, rx:4, fill:'#111827', stroke:'rgba(0,0,0,.5)'});
+        // sweet spot marker
+        add('circle',{cx:cordX, cy:bottomSweetY, r:5, fill:'var(--accent-2)', stroke:'white', 'stroke-width':2});
+
+        // dimensions: clearance (surface -> bottom) and drop (ceiling -> bottom)
+        const dimX = xCenter + 210; // right side
+        drawVDim(surfaceY, bottomSweetY, dimX, `${SWEET} cm ${t.clearance}`);
+        drawVDim(ceilYpx, bottomSweetY, dimX+70, `${Math.round(drop)} cm ${t.drop}`);
+      }
+
+      function drawVDim(y1, y2, x, label){
+        // vertical dimension with ticks and label to the right
+        add('line',{x1:x,y1:y1,x2:x,y2:y2,stroke:'rgba(0,0,0,.35)'});
+        add('line',{x1:x-6,y1:y1,x2:x+6,y2:y1,stroke:'rgba(0,0,0,.35)'});
+        add('line',{x1:x-6,y1:y2,x2:x+6,y2:y2,stroke:'rgba(0,0,0,.35)'});
+        const mid = (y1+y2)/2;
+        add('text',{x:x+10,y:mid+4,'font-size':12,fill:'var(--text)'},label);
+      }
+
+      function add(tag, attrs, text){
+        const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        Object.entries(attrs).forEach(([k,v])=> el.setAttribute(k,v));
+        if(text) el.textContent = text; svg.appendChild(el); return el;
+      }
+
+      // UI wiring
+      const input = document.getElementById('ceil');
+      const btnTable = document.getElementById('mode-table');
+      const btnIsland = document.getElementById('mode-island');
+
+      function setMode(next){
+        if(next===mode) return; mode = next;
+        btnTable.classList.toggle('active', mode==='table'); btnTable.setAttribute('aria-selected', mode==='table');
+        btnIsland.classList.toggle('active', mode==='island'); btnIsland.setAttribute('aria-selected', mode==='island');
+        recalc();
+      }
+
+      // note text localised
+      document.getElementById('note').textContent = t.note;
+
+      btnTable.addEventListener('click',()=> setMode('table'));
+      btnIsland.addEventListener('click',()=> setMode('island'));
+      input.addEventListener('input', recalc);
+
+      // initial draw
+      recalc();
+    })();
+  </script>
+</body>
+</html>
