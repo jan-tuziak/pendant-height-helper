@@ -85,7 +85,7 @@
         a11y:'Schemat wysokości zawieszenia lampy wiszącej',
         legendBand:(min,max)=>`Strefa ${min}–${max} cm nad blatem`, legendSweet:'Sweet spot',
         floor:'podłoga', ceiling:'sufit', table:'stół', island:'wyspa', drop:'drop', clearance:'nad blatem',
-        note:'Zakładamy stół 75 cm i wyspę 90 cm. Dół lampy 75–90 cm nad blatem (środek ~80–85 cm).',
+        note:'Zakładamy, że wysokość stołu to 75 cm, a wyspy 90 cm. Dół lampy powinien być 75–90 cm nad blatem (środek ~80–85 cm).',
         footerPrefix:'stworzone z ❤️ przez', footerSite:'educk.pl', footerHref:'https://educk.pl?utm_source=lamp-height'
       } : {
         pageTitle:'Pendant Height Helper',
@@ -95,7 +95,7 @@
         a11y:'Diagram of pendant height over table/island',
         legendBand:(min,max)=>`Band ${min}–${max} cm above surface`, legendSweet:'Sweet spot',
         floor:'floor', ceiling:'ceiling', table:'table', island:'island', drop:'drop', clearance:'above',
-        note:'Assumptions: table 75 cm, island 90 cm. Bottom of pendant 75–90 cm above surface (mid ~80–85 cm).',
+        note:'Assumptions: table 75 cm in height, island 90 cm. Bottom of pendant should be 75–90 cm above surface (mid ~80–85 cm).',
         footerPrefix:'created with ❤️ by', footerSite:'educk.org', footerHref:'https://educk.org?utm_source=lamp-height'
       };
       document.title = t.pageTitle; document.getElementById('title').textContent = t.pageTitle;
